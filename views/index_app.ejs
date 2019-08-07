@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/stylesheets/style.css" />
+  </head>
+  <body>
+    <h1><%= title %></h1>
+    <p>Welcome to <%= title %></p>
+     alpha:
+     <div id="acce">
+        <span id="alpha"></span>
+        <br/> beta:
+        <span id="beta"></span>
+        <br/> gamma:
+        <span id="gamma"></span>
+        <br/>
+        <br>
+        <div>
+          加速度：
+          <span id="speed"></span>
+        </div>
+     </div>
+  </body>
+  <script>
+    if (window.DeviceOrientationEvent) {
+      var gyro = {
+        alpha: 0,
+        beta: 0,
+        gamma: 0,
+      }
+      var event = {
+        time: 0,
+      }
+      var server_url = "ws://"+window.location.origin.replace(/.*\/\//,'')+ "/mouse";
+      var sock = new WebSocket(server_url);
+      function socketSend(data){
+        if(sock && sock.readyState == 1){
+          sock.send(JSON.stringify(data));
+        }
+      }
+      //touchHandler
+      (function () {
+        var event = {
+          type: "touch",
+          touch: "",
+        }
+        function touch(ev) {
+          if(ev && ev.type){
+            event.touch = ev.type;
+            socketSend(event);
+          }
+        }
+        document.addEventListener("touchstart",touch);
+        document.addEventListener("touchend",touch);
+        document.addEventListener("touchmove",touch);
+      })();
+      const time_gap = 50;
+      //gyroHandler
+      (function(){
+        var event = {
+          type: "gyro",
+          gyro: null,
+        }
+        window.addEventListener('deviceorientation', function (ev) {
+          var a = document.getElementById('alpha'),
+              b = document.getElementById('beta'),
+              g = document.getElementById('gamma'),
+              alpha = ev.alpha,
+              beta = ev.beta,
+              gamma = ev.gamma;
+          a.innerHTML = gyro.alpha = alpha.toFixed(6);
+          b.innerHTML = gyro.beta = beta.toFixed(6);
+          g.innerHTML = gyro.gamma = gamma.toFixed(6);
+          event.time = new Date();
+        }, false);
+        var timmer = setInterval(()=>{
+          if(new Date() - event.time < 2 * time_gap){
+            event.gyro = gyro;
+            socketSend(event);
+          }
+        },time_gap)
+      })();
+    } else {
+        document.querySelector('body').innerHTML = '你的浏览器不支持陀螺仪';
+    }
+
+  </script>
+</html>
