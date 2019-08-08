@@ -5,7 +5,11 @@ var logger = require('morgan');
 var indexRouter = require('./routes/index');
 var qr_image = require('qr-image');
 var robot = require("robotjs");
-var screenSize = robot.getScreenSize();
+var GyroProcessor = require('./lib/gyro-processor')
+
+global.$setting = {
+  send_time_gap: 50,
+}
 
 var app = express();
 
@@ -39,8 +43,8 @@ app.use(function(err, req, res, next) {
 });
 var wss = [];
 var expressWs = require('express-ws')(app);
+
 app.ws('/mouse', (ws, req)=>{
-  var last_gyro = null;
   const last_touch = {
     time: 0,
     touch: "",
@@ -48,26 +52,12 @@ app.ws('/mouse', (ws, req)=>{
     clk_num: 0,
     clk_time: 0,
   }
+  var gyrpProcessor = GyroProcessor("relative");
   ws.on('message', function(msg) {
     var event = JSON.parse(msg);
     if(!event.type) return;
     if(event.type === "gyro"){
-      if(!event.gyro)return;
-      var gyro = event.gyro;
-      gyro.alpha = parseFloat(gyro.alpha);
-      gyro.beta = parseFloat(gyro.beta);
-      gyro.gamma = parseFloat(gyro.gamma);
-      if(gyro.alpha && gyro.beta && gyro.gamma){
-        if(last_gyro && gyro.gamma - last_gyro.gamma > 30) robot.mouseClick("right");
-        else if (last_gyro && gyro.gamma - last_gyro.gamma < -30) robot.mouseClick("left");
-        else{
-          var pos = robot.getMousePos();
-          var x = (gyro.alpha - 90) * (- screenSize.width/45.0) + screenSize.width/2;
-          var y = (gyro.beta) * (- screenSize.height/45.0) + screenSize.height/2;
-          robot.moveMouse(x,y)
-        }
-        last_gyro = gyro;
-      }
+      gyrpProcessor.process(event);
     }
     else if(event.type === "touch"){
       switch(event.touch){
@@ -76,7 +66,7 @@ app.ws('/mouse', (ws, req)=>{
         case "touchend":
           if(last_touch.touch === "touchstart"){
             var gap = new Date() - last_touch.time;
-            if(gap < 100){
+            if(gap < 200){
               if(last_touch.clk_num == 0){
                 last_touch.clk_num ++;
                 last_touch.timer = setTimeout(() => {

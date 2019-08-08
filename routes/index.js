@@ -16,7 +16,7 @@ router.get("/", function(req, res, next) {
     res.render("index", { title: "Express-server", urls: urls});
   }
   else {
-    res.render("index_app", { title: "Express", ws_port: global.ws_port });
+    res.render("index_app", { title: "Express", ws_port: global.ws_port, time_gap: global.$setting.send_time_gap});
   }
 });
 

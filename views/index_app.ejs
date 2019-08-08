@@ -58,7 +58,7 @@
         document.addEventListener("touchend",touch);
         document.addEventListener("touchmove",touch);
       })();
-      const time_gap = 50;
+      const time_gap = JSON.parse("<%- JSON.stringify(time_gap) %>");
       //gyroHandler
       (function(){
         var event = {
