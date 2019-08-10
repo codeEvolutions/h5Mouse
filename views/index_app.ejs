@@ -44,6 +44,7 @@
       }
       //touchHandler
       (function () {
+        document.oncontextmenu = (e)=>{e.preventDefault()};
         var event = {
           type: "touch",
           touch: "",
@@ -51,8 +52,10 @@
         function touch(ev) {
           if(ev && ev.type){
             event.touch = ev.type;
+            event.point = {x: ev.touches[0].screenX, y: ev.touches[0].screenY};
             socketSend(event);
           }
+          ev.preventDefault();
         }
         document.addEventListener("touchstart",touch);
         document.addEventListener("touchend",touch);

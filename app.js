@@ -6,6 +6,7 @@ var indexRouter = require('./routes/index');
 var qr_image = require('qr-image');
 var robot = require("robotjs");
 var GyroProcessor = require('./lib/gyro-processor')
+var TouchProcessor = require('./lib/touch-processor')
 
 global.$setting = {
   send_time_gap: 50,
@@ -45,14 +46,8 @@ var wss = [];
 var expressWs = require('express-ws')(app);
 
 app.ws('/mouse', (ws, req)=>{
-  const last_touch = {
-    time: 0,
-    touch: "",
-    timer: null,
-    clk_num: 0,
-    clk_time: 0,
-  }
   var gyrpProcessor = GyroProcessor("relative");
+  var touchProcessor = TouchProcessor();
   ws.on('message', function(msg) {
     var event = JSON.parse(msg);
     if(!event.type) return;
@@ -60,35 +55,7 @@ app.ws('/mouse', (ws, req)=>{
       gyrpProcessor.process(event);
     }
     else if(event.type === "touch"){
-      switch(event.touch){
-        case "touchstart":
-          break;
-        case "touchend":
-          if(last_touch.touch === "touchstart"){
-            var gap = new Date() - last_touch.time;
-            if(gap < 200){
-              if(last_touch.clk_num == 0){
-                last_touch.clk_num ++;
-                last_touch.timer = setTimeout(() => {
-                  last_touch.clk_num =0;
-                  robot.mouseClick("left");
-                }, 300);
-              }
-              else{
-                if(last_touch.timer){
-                  clearTimeout(last_touch.timer);
-                  last_touch.timer = null;
-                }
-                last_touch.clk_num =0;
-                robot.mouseClick("right");
-              }
-            }
-          }
-          break;
-        case "touchmove":
-      }
-      last_touch.time = new Date();
-      last_touch.touch = event.touch;
+      touchProcessor.process(event);
     }
   });
   ws.on('connection',data=>{
