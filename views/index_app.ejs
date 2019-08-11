@@ -52,7 +52,8 @@
         function touch(ev) {
           if(ev && ev.type){
             event.touch = ev.type;
-            event.point = {x: ev.touches[0].screenX, y: ev.touches[0].screenY};
+            //The length of ev.touches is 0 when touchend.
+            if(ev.type !== "touchend") event.point = {x: ev.touches[0].screenX, y: ev.touches[0].screenY};
             socketSend(event);
           }
           ev.preventDefault();
