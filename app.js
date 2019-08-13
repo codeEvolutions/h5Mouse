@@ -44,13 +44,15 @@ app.use(function (err, req, res, next) {
 require('express-ws')(app);
 var wss = [];
 app.ws('/mouse', (ws, req) => {
-  var gyrpProcessor = GyroProcessor('relative');
+  var gyroProcessor = null;
   var touchProcessor = TouchProcessor();
+  touchProcessor.on('longPressDown', () => { gyroProcessor = GyroProcessor('relative'); });
+  touchProcessor.on('longPressUp', () => { gyroProcessor = null; });
   ws.on('message', function (msg) {
     var event = JSON.parse(msg);
     if (!event.type) return;
     if (event.type === 'gyro') {
-      gyrpProcessor.process(event);
+      if (gyroProcessor) gyroProcessor.process(event);
     } else if (event.type === 'touch') {
       touchProcessor.process(event);
     }

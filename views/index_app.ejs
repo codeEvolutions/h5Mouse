@@ -52,8 +52,7 @@
         function touch(ev) {
           if(ev && ev.type){
             event.touch = ev.type;
-            //The length of ev.touches is 0 when touchend.
-            if(ev.type !== "touchend") event.point = {x: ev.touches[0].screenX, y: ev.touches[0].screenY};
+            if(ev.touches.length > 0) event.point = {x: ev.touches[0].screenX, y: ev.touches[0].screenY};
             socketSend(event);
           }
           ev.preventDefault();
@@ -61,6 +60,7 @@
         document.addEventListener("touchstart",touch);
         document.addEventListener("touchend",touch);
         document.addEventListener("touchmove",touch);
+        document.addEventListener("touchcancel",touch);
       })();
       const time_gap = JSON.parse("<%- JSON.stringify(time_gap) %>");
       //gyroHandler
