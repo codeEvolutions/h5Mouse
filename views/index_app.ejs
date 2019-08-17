@@ -9,21 +9,6 @@
   </head>
   <body>
     <h1><%= title %></h1>
-    <p>Welcome to <%= title %></p>
-     alpha:
-     <div id="acce">
-        <span id="alpha"></span>
-        <br/> beta:
-        <span id="beta"></span>
-        <br/> gamma:
-        <span id="gamma"></span>
-        <br/>
-        <br>
-        <div>
-          加速度：
-          <span id="speed"></span>
-        </div>
-     </div>
   </body>
   <script>
     if (window.DeviceOrientationEvent) {
@@ -70,15 +55,9 @@
           gyro: null,
         }
         window.addEventListener('deviceorientation', function (ev) {
-          var a = document.getElementById('alpha'),
-              b = document.getElementById('beta'),
-              g = document.getElementById('gamma'),
-              alpha = ev.alpha,
-              beta = ev.beta,
-              gamma = ev.gamma;
-          a.innerHTML = gyro.alpha = alpha.toFixed(6);
-          b.innerHTML = gyro.beta = beta.toFixed(6);
-          g.innerHTML = gyro.gamma = gamma.toFixed(6);
+          gyro.alpha = ev.alpha.toFixed(6);
+          gyro.beta = ev.beta.toFixed(6);
+          gyro.gamma = ev.gamma.toFixed(6);
           event.time = new Date();
         }, false);
         var timmer = setInterval(()=>{
