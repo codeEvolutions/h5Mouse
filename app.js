@@ -6,6 +6,8 @@ var indexRouter = require('./routes/index');
 var qrImage = require('qr-image');
 var GyroProcessor = require('./lib/gyro-processor');
 var TouchProcessor = require('./lib/touch-processor');
+var robot = require('robotjs');
+var clipboard = require('clipboardy');
 
 global.$setting = {
   send_time_gap: 50
@@ -55,6 +57,11 @@ app.ws('/mouse', (ws, req) => {
       if (gyroProcessor) gyroProcessor.process(event);
     } else if (event.type === 'touch') {
       touchProcessor.process(event);
+    } else if (event.type === 'string') {
+      clipboard.writeSync(event.string);
+      robot.keyTap('v', 'control');
+    } else if (event.type === 'key') {
+      robot.keyTap(event.key);
     }
   });
   ws.on('connection', data => {

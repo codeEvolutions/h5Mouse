@@ -9,8 +9,44 @@
   </head>
   <body>
     <h1><%= title %></h1>
+    <div id = "input-container">
+      <input id="input" style="display: inline-block;" onkeypress="onKey(event,this)">
+      <button onclick="onBack()">back</button>
+    </div>
   </body>
   <script>
+    var server_url = "ws://"+window.location.origin.replace(/.*\/\//,'')+ "/mouse";
+    var sock = new WebSocket(server_url);
+    function socketSend(data){
+      if(sock && sock.readyState == 1){
+        sock.send(JSON.stringify(data));
+      }
+    }
+    function onKey(ev,target) {
+      if (ev.key === "Enter") {
+        if (target.value === ""){
+          var event={
+            type: 'key',
+            key: 'enter'
+          }
+          socketSend(event);
+        } else {
+          var event={
+            type: 'string',
+            string: target.value
+          }
+          socketSend(event);
+          target.value = "";
+        }
+      }
+    }
+    function onBack(){
+      var event={
+        type: 'key',
+        key: 'backspace'
+      }
+      socketSend(event);
+    }
     if (window.DeviceOrientationEvent) {
       var gyro = {
         alpha: 0,
@@ -19,28 +55,23 @@
       }
       var event = {
         time: 0,
-      }
-      var server_url = "ws://"+window.location.origin.replace(/.*\/\//,'')+ "/mouse";
-      var sock = new WebSocket(server_url);
-      function socketSend(data){
-        if(sock && sock.readyState == 1){
-          sock.send(JSON.stringify(data));
-        }
-      }
+      };
       //touchHandler
       (function () {
         document.oncontextmenu = (e)=>{e.preventDefault()};
+        var inputContainer = document.getElementById('input-container');
         var event = {
           type: "touch",
           touch: "",
         }
         function touch(ev) {
+          if (ev.type === "touchstart") inputContainer.style.visibility = "hidden";
+          else if (ev.type === "touchend") inputContainer.style.visibility = "visible";
           if(ev && ev.type){
             event.touch = ev.type;
             if(ev.touches.length > 0) event.point = {x: ev.touches[0].screenX, y: ev.touches[0].screenY};
             socketSend(event);
           }
-          ev.preventDefault();
         }
         document.addEventListener("touchstart",touch);
         document.addEventListener("touchend",touch);
